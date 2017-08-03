@@ -1,0 +1,4 @@
+.idea
+*.pyc
+deployfish_mysql.egg-info
+
