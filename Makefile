@@ -9,3 +9,10 @@ clean:
 
 version:
 	@echo $(VERSION)
+
+dist: clean
+	@python setup.py sdist
+	@python setup.py bdist_wheel --universal
+
+pypi: dist
+	@twine upload dist/*
