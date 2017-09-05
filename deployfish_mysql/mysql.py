@@ -11,7 +11,25 @@ from deployfish.config import Config
 
 @cli.group(short_help="Manage a remote MySQL database")
 def mysql():
-    pass
+    """
+    Manage a remote MySQL database
+
+    The configuration for these commands should be found in a mysql: top-level section
+    in the yaml file, in the format:
+
+    \b
+    mysql:
+      - name: my_mysql_connection
+        service: my_service
+        host: config.MY_DB_HOST
+        db: config.MY_DB_NAME
+        user: config.MY_DB_USER
+        pass: config.MY_DB_PASSWORD
+
+    where the config.* values are the values define for this service in the AWS
+    Parameter Store. These values could also just be the actual values rather than
+    referring to the service's config values.
+    """
 
 def _interpolate_mysql_info(value, service):
     if type(value) == str and value.startswith('config.'):
@@ -40,11 +58,6 @@ def _get_db_parameters(service, yml):
     user = _interpolate_mysql_info(yml['user'], service)
     passwd = _interpolate_mysql_info(yml['pass'], service)
     port = _interpolate_mysql_info(yml.get('port', '3306'), service)
-    # host = _get_environment_value_from_suffix(service, 'DEPLOYFISH_DB_HOST_SUFFIX')
-    # name = _get_environment_value_from_suffix(service, 'DEPLOYFISH_DB_NAME_SUFFIX')
-    # user = _get_environment_value_from_suffix(service, 'DEPLOYFISH_DB_USER_SUFFIX')
-    # passwd = _get_environment_value_from_suffix(service, 'DEPLOYFISH_DB_PASSWORD_SUFFIX')
-    # port = _get_environment_value_from_suffix(service, 'DEPLOYFISH_DB_PORT_SUFFIX', '3306')
     return host, name, user, passwd, port
 
 
@@ -52,7 +65,6 @@ def _get_db_parameters(service, yml):
 @click.pass_context
 @click.argument('name')
 def create(ctx, name):
-    # service = Service(yml=Config(filename=ctx.obj['CONFIG_FILE'], env_file=ctx.obj['ENV_FILE']).get_service(service_name))
     config = Config(filename=ctx.obj['CONFIG_FILE'], env_file=ctx.obj['ENV_FILE'])
     yml = config.get_category_item('mysql', name)
     service_name = yml['service']
@@ -65,7 +77,6 @@ def create(ctx, name):
     cmd = "/usr/bin/mysql --host={} --user={} --password={} --port={} --execute=\"create database {}; grant all privileges on {}.* to '{}'@'%' identified by '{}';\"".format(host, root, rootpw, port, name, name, user, passwd)
 
     success, output = service.run_remote_script([cmd])
-    # success, output = service.create_db(host, root, rootpw, name, user, passwd, port)
     print(success)
     print(output)
 
@@ -91,10 +102,6 @@ def validate(ctx, name):
 @click.pass_context
 @click.argument('name')
 def dump(ctx, name):
-    # service_name = name
-    # service = Service(yml=Config(filename=ctx.obj['CONFIG_FILE'], env_file=ctx.obj['ENV_FILE']).get_service(service_name))
-    # host, name, user, passwd, port = _get_db_parameters(service)
-
     config = Config(filename=ctx.obj['CONFIG_FILE'], env_file=ctx.obj['ENV_FILE'])
     yml = config.get_category_item('mysql', name)
     service_name = yml['service']
@@ -127,7 +134,6 @@ def load(ctx, name, data_file, force):
         return
     if not click.confirm("Are you sure you wish to overwrite the {} database?".format(service_name)):
         return
-    # service = Service(yml=Config(filename=ctx.obj['CONFIG_FILE'], env_file=ctx.obj['ENV_FILE']).get_service(service_name))
     config = Config(filename=ctx.obj['CONFIG_FILE'], env_file=ctx.obj['ENV_FILE'])
     yml = config.get_category_item('mysql', name)
     service_name = yml['service']
