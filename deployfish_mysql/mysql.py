@@ -129,14 +129,14 @@ def dump(ctx, name):
 @click.argument('data_file')
 @click.option('--force/--no-force', default=False, help="Since this operation is dangerous, you have to force it.")
 def load(ctx, name, data_file, force):
+    config = Config(filename=ctx.obj['CONFIG_FILE'], env_file=ctx.obj['ENV_FILE'])
+    yml = config.get_category_item('mysql', name)
+    service_name = yml['service']
     if not force:
         click.echo("You must use --force if you wish to overwrite the {} database.".format(service_name))
         return
     if not click.confirm("Are you sure you wish to overwrite the {} database?".format(service_name)):
         return
-    config = Config(filename=ctx.obj['CONFIG_FILE'], env_file=ctx.obj['ENV_FILE'])
-    yml = config.get_category_item('mysql', name)
-    service_name = yml['service']
     service = Service(yml=config.get_service(service_name))
 
     host, name, user, passwd, port = _get_db_parameters(service)
