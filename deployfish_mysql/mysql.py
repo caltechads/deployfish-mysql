@@ -139,7 +139,7 @@ def load(ctx, name, data_file, force):
         return
     service = Service(yml=config.get_service(service_name))
 
-    host, name, user, passwd, port = _get_db_parameters(service)
+    host, name, user, passwd, port = _get_db_parameters(service, yml)
 
     head, filename = os.path.split(data_file)
     input_file = open(data_file)
