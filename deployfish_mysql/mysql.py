@@ -70,7 +70,7 @@ def create(ctx, name):
     service_name = yml['service']
     service = Service(yml=config.get_service(service_name))
 
-    host, name, user, passwd, port = _get_db_parameters(service)
+    host, name, user, passwd, port = _get_db_parameters(service, yml)
     root = click.prompt('DB root user')
     rootpw = click.prompt('DB root password')
 
