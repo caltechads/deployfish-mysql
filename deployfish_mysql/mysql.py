@@ -74,7 +74,15 @@ def create(ctx, name):
     root = click.prompt('DB root user')
     rootpw = click.prompt('DB root password')
 
-    cmd = "/usr/bin/mysql --host={} --user={} --password={} --port={} --execute=\"create database {}; grant all privileges on {}.* to '{}'@'%' identified by '{}';\"".format(host, root, rootpw, port, name, name, user, passwd)
+    # NOTE: Best practice is to no longer use utf8, but rather utf8mb4. Unfortunately, that's not compatible with
+    # django (yet), because it uses several indexed fields that are longer than 191 characters, which is the longest
+    # that an indexed field can be in the utf8mb4 encoding (for stupid MySQL reasons). So we're still using utf8.
+    # @see https://code.djangoproject.com/ticket/18392 and https://github.com/django/django/pull/8886
+    exec1 = "CREATE DATABASE {} CHARACTER SET utf8 COLLATE utf8_unicode_ci;".format(name)
+    exec2 = "grant all privileges on {}.* to '{}'@'%' identified by '{}';".format(name, user, passwd)
+    cmd = "/usr/bin/mysql --host={} --user={} --password={} --port={} --execute=\"{} {}\"".format(
+        host, root, rootpw, port, exec1, exec2
+    )
 
     success, output = service.run_remote_script([cmd])
     print(success)
