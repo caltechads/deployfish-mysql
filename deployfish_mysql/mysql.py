@@ -66,8 +66,8 @@ def _get_db_parameters(service, yml):
 @click.argument('name')
 @needs_config
 def create(ctx, name):
-    service_name = ctx.obj['CONFIG'].get_section_item('mysql', name)
-    service = Service(service_name, config=ctx.obj['CONFIG'])
+    yml = ctx.obj['CONFIG'].get_section_item('mysql', name)
+    service = Service(yml['service'], config=ctx.obj['CONFIG'])
 
     host, name, user, passwd, port = _get_db_parameters(service, yml)
     root = click.prompt('DB root user')
@@ -93,8 +93,8 @@ def create(ctx, name):
 @click.argument('name')
 @needs_config
 def validate(ctx, name):
-    service_name = ctx.obj['CONFIG'].get_section_item('mysql', name)
-    service = Service(service_name, config=ctx.obj['CONFIG'])
+    yml = ctx.obj['CONFIG'].get_section_item('mysql', name)
+    service = Service(yml['service'], config=ctx.obj['CONFIG'])
 
     host, name, user, passwd, port = _get_db_parameters(service, yml)
     cmd = "/usr/bin/mysql --host={} --user={} --password={} --port={} --execute='select version(), current_date;'"
@@ -109,8 +109,8 @@ def validate(ctx, name):
 @click.argument('name')
 @needs_config
 def dump(ctx, name):
-    service_name = ctx.obj['CONFIG'].get_section_item('mysql', name)
-    service = Service(service_name, config=ctx.obj['CONFIG'])
+    yml = ctx.obj['CONFIG'].get_section_item('mysql', name)
+    service = Service(yml['service'], config=ctx.obj['CONFIG'])
     host, name, user, passwd, port = _get_db_parameters(service, yml)
 
     cmd = "/usr/bin/mysqldump --host={} --user={} --password={} --port={} --opt {}"
@@ -135,13 +135,13 @@ def dump(ctx, name):
 @click.option('--force/--no-force', default=False, help="Since this operation is dangerous, you have to force it.")
 @needs_config
 def load(ctx, name, data_file, force):
-    service_name = ctx.obj['CONFIG'].get_section_item('mysql', name)
+    yml = ctx.obj['CONFIG'].get_section_item('mysql', name)
     if not force:
-        click.echo("You must use --force if you wish to overwrite the {} database.".format(service_name))
+        click.echo("You must use --force if you wish to overwrite the {} database.".format(yml['service']))
         return
-    if not click.confirm("Are you sure you wish to overwrite the {} database?".format(service_name)):
+    if not click.confirm("Are you sure you wish to overwrite the {} database?".format(yml['service'])):
         return
-    service = Service(service_name, config=ctx.obj['CONFIG'])
+    service = Service(yml['service'], config=ctx.obj['CONFIG'])
 
     host, name, user, passwd, port = _get_db_parameters(service, yml)
 
