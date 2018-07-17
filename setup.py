@@ -19,7 +19,7 @@ setup(
     include_package_data=True,
     install_requires=[
         "click >= 6.7",
-        "deployfish >= 0.15.1",
+        "deployfish >= 0.22.0",
         "shellescape == 3.4.1"
     ],
     entry_points={'deployfish.command.plugins': [

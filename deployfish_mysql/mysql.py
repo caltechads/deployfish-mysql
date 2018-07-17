@@ -4,9 +4,9 @@ import click
 import os
 from shellescape import quote
 
-from deployfish.cli import cli
 from deployfish.aws.ecs import Service
-from deployfish.config import Config
+from deployfish.cli import cli
+from deployfish.config import Config, needs_config
 
 
 @cli.group(short_help="Manage a remote MySQL database")
@@ -64,11 +64,10 @@ def _get_db_parameters(service, yml):
 @mysql.command('create', short_help="Create database and user")
 @click.pass_context
 @click.argument('name')
+@needs_config
 def create(ctx, name):
-    config = Config(filename=ctx.obj['CONFIG_FILE'], env_file=ctx.obj['ENV_FILE'])
-    yml = config.get_category_item('mysql', name)
-    service_name = yml['service']
-    service = Service(yml=config.get_service(service_name))
+    service_name = ctx.obj['CONFIG'].get_section_item('mysql', name)
+    service = Service(service_name, config=ctx.obj['CONFIG'])
 
     host, name, user, passwd, port = _get_db_parameters(service, yml)
     root = click.prompt('DB root user')
@@ -92,11 +91,10 @@ def create(ctx, name):
 @mysql.command(short_help='Validate database and user')
 @click.pass_context
 @click.argument('name')
+@needs_config
 def validate(ctx, name):
-    config = Config(filename=ctx.obj['CONFIG_FILE'], env_file=ctx.obj['ENV_FILE'])
-    yml = config.get_category_item('mysql', name)
-    service_name = yml['service']
-    service = Service(yml=config.get_service(service_name))
+    service_name = ctx.obj['CONFIG'].get_section_item('mysql', name)
+    service = Service(service_name, config=ctx.obj['CONFIG'])
 
     host, name, user, passwd, port = _get_db_parameters(service, yml)
     cmd = "/usr/bin/mysql --host={} --user={} --password={} --port={} --execute='select version(), current_date;'"
@@ -109,11 +107,10 @@ def validate(ctx, name):
 @mysql.command('dump', short_help='Dump database')
 @click.pass_context
 @click.argument('name')
+@needs_config
 def dump(ctx, name):
-    config = Config(filename=ctx.obj['CONFIG_FILE'], env_file=ctx.obj['ENV_FILE'])
-    yml = config.get_category_item('mysql', name)
-    service_name = yml['service']
-    service = Service(yml=config.get_service(service_name))
+    service_name = ctx.obj['CONFIG'].get_section_item('mysql', name)
+    service = Service(service_name, config=ctx.obj['CONFIG'])
     host, name, user, passwd, port = _get_db_parameters(service, yml)
 
     cmd = "/usr/bin/mysqldump --host={} --user={} --password={} --port={} --opt {}"
@@ -136,16 +133,15 @@ def dump(ctx, name):
 @click.argument('name')
 @click.argument('data_file')
 @click.option('--force/--no-force', default=False, help="Since this operation is dangerous, you have to force it.")
+@needs_config
 def load(ctx, name, data_file, force):
-    config = Config(filename=ctx.obj['CONFIG_FILE'], env_file=ctx.obj['ENV_FILE'])
-    yml = config.get_category_item('mysql', name)
-    service_name = yml['service']
+    service_name = ctx.obj['CONFIG'].get_section_item('mysql', name)
     if not force:
         click.echo("You must use --force if you wish to overwrite the {} database.".format(service_name))
         return
     if not click.confirm("Are you sure you wish to overwrite the {} database?".format(service_name)):
         return
-    service = Service(yml=config.get_service(service_name))
+    service = Service(service_name, config=ctx.obj['CONFIG'])
 
     host, name, user, passwd, port = _get_db_parameters(service, yml)
 
