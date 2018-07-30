@@ -120,6 +120,7 @@ def dump(ctx, name):
     i = 1
     while os.path.exists(output_filename):
         output_filename = "{}-{}.sql".format(service.serviceName, i)
+        i += 1
 
     os.rename(tmp_file, os.path.join(os.getcwd(), output_filename))
     if success:
