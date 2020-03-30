@@ -7,7 +7,7 @@ from shellescape import quote
 from deployfish.aws.ecs import Service
 from deployfish.cli import cli
 from deployfish.config import Config, needs_config
-
+from deployfish.ssh import SSHConfig
 
 @cli.group(short_help="Manage a remote MySQL database")
 def mysql():
@@ -83,7 +83,8 @@ def create(ctx, name):
         host, root, rootpw, port, exec1, exec2
     )
 
-    success, output = service.run_remote_script([cmd])
+    ssh = SSHConfig(service, config=ctx.obj['CONFIG']).get_ssh()
+    success, output = ssh.run_remote_script([cmd])
     print(success)
     print(output)
 
@@ -99,7 +100,8 @@ def validate(ctx, name):
     host, name, user, passwd, port = _get_db_parameters(service, yml)
     cmd = "/usr/bin/mysql --host={} --user={} --password={} --port={} --execute='select version(), current_date;'"
     cmd = cmd.format(host, user, quote(passwd), port)
-    success, output = service.run_remote_script([cmd])
+    ssh = SSHConfig(service, config=ctx.obj['CONFIG']).get_ssh()
+    success, output = ssh.run_remote_script([cmd])
     print(success)
     print(output)
 
@@ -115,7 +117,9 @@ def dump(ctx, name):
 
     cmd = "/usr/bin/mysqldump --host={} --user={} --password={} --port={} --opt {}"
     cmd = cmd.format(host, user, quote(passwd), port, name)
-    success, tmp_file = service.run_remote_script([cmd], file_output=True)
+
+    ssh = SSHConfig(service, config=ctx.obj['CONFIG']).get_ssh()
+    success, tmp_file = ssh.run_remote_script([cmd], file_output=True)
     output_filename = "{}.sql".format(service.serviceName)
     i = 1
     while os.path.exists(output_filename):
@@ -155,7 +159,9 @@ def load(ctx, name, data_file, force):
             host, user, quote(passwd), port, name, filename),
         "rm {}".format(filename)
     ]
-    success, output = service.run_remote_script(cmd)
+
+    ssh = SSHConfig(service, config=ctx.obj['CONFIG']).get_ssh()
+    success, output = ssh.run_remote_script(cmd)
 
     print(success)
     print(output)
