@@ -152,15 +152,16 @@ def load(ctx, name, data_file, force):
 
     head, filename = os.path.split(data_file)
     input_file = open(data_file)
-    service.push_remote_text_file(input_data=input_file)
+
+    ssh = SSHConfig(service, config=ctx.obj['CONFIG']).get_ssh()
+    ssh.push_remote_text_file(input_data=input_file)
 
     cmd = [
         "/usr/bin/mysql --host={} --user={} --password={} --port={} {} < {}".format(
             host, user, quote(passwd), port, name, filename),
         "rm {}".format(filename)
     ]
-
-    ssh = SSHConfig(service, config=ctx.obj['CONFIG']).get_ssh()
+    
     success, output = ssh.run_remote_script(cmd)
 
     print(success)
