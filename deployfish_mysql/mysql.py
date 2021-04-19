@@ -115,7 +115,7 @@ def dump(ctx, name):
     service = Service(yml['service'], config=ctx.obj['CONFIG'])
     host, name, user, passwd, port = _get_db_parameters(service, yml)
 
-    cmd = "/usr/bin/mysqldump --host={} --user={} --password={} --port={} --opt {}"
+    cmd = "/usr/bin/mysqldump --host={} --user={} --password={} --port={} --opt --no-tablespaces {}"
     cmd = cmd.format(host, user, quote(passwd), port, name)
 
     ssh = SSHConfig(service, config=ctx.obj['CONFIG']).get_ssh()
