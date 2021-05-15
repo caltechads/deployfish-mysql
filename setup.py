@@ -18,11 +18,11 @@ setup(
     packages=find_packages(),
     include_package_data=True,
     install_requires=[
-        "click >= 6.7",
-        "deployfish >= 0.22.0",
+        "click >= 7.0",
+        #"deployfish >= 1.0.0",
         "shellescape == 3.4.1"
     ],
-    entry_points={'deployfish.command.plugins': [
-        'mysql = deployfish_mysql.mysql'
-    ]},
+    entry_points={
+        'deployfish.command.plugins': ['mysql = deployfish_mysql.cli.main']
+    },
 )
