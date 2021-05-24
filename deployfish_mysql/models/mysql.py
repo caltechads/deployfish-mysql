@@ -87,9 +87,9 @@ class MySQLDatabaseManager(Manager):
                 raise self.OperationFailed('Dump of MySQLDatabase("{}") failed:\n{}'.format(obj.pk, errors))
 
     def load(self, obj, filepath, ssh_target=None, verbose=False):
-        success, output, filename = obj.cluster.push_file(filepath)
+        success, output, filename = obj.cluster.push_file(filepath, ssh_target=ssh_target)
         command = obj.render_for_load().format(filename=filename)
-        return obj.cluster.ssh_target.ssh_noninteractive(command, ssh_target=ssh_target, verbose=verbose)
+        return obj.cluster.ssh_noninteractive(command, ssh_target=ssh_target, verbose=verbose)
 
 
 # ----------------------------------------
@@ -274,7 +274,7 @@ class MySQLDatabase(Model):
             self.user,
             quote(self.password),
             self.port,
-            self.name
+            self.db
         )
         return cmd
 
