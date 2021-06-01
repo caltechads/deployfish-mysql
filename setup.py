@@ -19,8 +19,7 @@ setup(
     include_package_data=True,
     install_requires=[
         "click >= 7.0",
-        "deployfish >= 1.0.0",
-        "shellescape >= 3.8.1"
+        "deployfish >= 1.2.0"
     ],
     entry_points={
         'deployfish.command.plugins': ['mysql = deployfish_mysql.cli.main']

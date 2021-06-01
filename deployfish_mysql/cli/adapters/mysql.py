@@ -2,18 +2,24 @@ from deployfish.cli.adapters import ClickModelAdapter
 
 from .commands import (
     ClickCreateDatabaseCommandMixin,
+    ClickUpdateDatabaseCommandMixin,
     ClickDumpDatabaseCommandMixin,
     ClickLoadSQLCommandMixin,
     ClickValidateDatabaseUserCommandMixin,
+    ClickServerVersionCommandMixin,
+    ClickShowGrantsCommandMixin,
 )
 from deployfish_mysql.models import MySQLDatabase
 
 
 class ClickMySQLDatabaseAdapter(
     ClickCreateDatabaseCommandMixin,
+    ClickUpdateDatabaseCommandMixin,
     ClickDumpDatabaseCommandMixin,
     ClickLoadSQLCommandMixin,
     ClickValidateDatabaseUserCommandMixin,
+    ClickServerVersionCommandMixin,
+    ClickShowGrantsCommandMixin,
     ClickModelAdapter
 ):
 

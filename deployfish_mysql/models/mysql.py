@@ -1,8 +1,6 @@
 import os
 import tempfile
 
-from shellescape import quote
-
 from deployfish.config import get_config
 from deployfish.core.models import Manager, Model, Secret, Service
 
@@ -43,32 +41,91 @@ class MySQLDatabaseManager(Manager):
         return self.create(obj, root_user, root_password, ssh_target=ssh_target, verbose=verbose)
 
     def create(self, obj, root_user, root_password, verbose=False, ssh_target=None):
-        command = obj.render_for_create().format(
-            root_user=root_user,
-            root_password=root_password
+        version = self.major_server_version(
+            obj,
+            user=root_user,
+            password=root_password,
+            verbose=verbose,
+            ssh_target=ssh_target
         )
-        return obj.cluster.ssh_target.ssh_noninteractive(
+        command = obj.render_for_create(root_user, root_password, version=version)
+        status, output = obj.cluster.ssh_target.ssh_noninteractive(
             command,
             ssh_target=ssh_target,
             verbose=verbose
         )
+        if status:
+            return output
+        else:
+            raise obj.OperationFailed(
+                'Failed to create database "{}" and/or user "{}" on {}:{}: {}'.format(
+                    obj.db,
+                    obj.user,
+                    obj.host,
+                    obj.port,
+                    output
+                )
+            )
+
+    def update(self, obj, root_user, root_password, verbose=False, ssh_target=None):
+        version = self.major_server_version(
+            obj,
+            user=root_user,
+            password=root_password,
+            verbose=verbose,
+            ssh_target=ssh_target
+        )
+        command = obj.render_for_update(root_user, root_password, version=version)
+        success, output = obj.cluster.ssh_target.ssh_noninteractive(
+            command,
+            ssh_target=ssh_target,
+            verbose=verbose
+        )
+        if success:
+            return output
+        else:
+            raise obj.OperationFailed(
+                'Failed to update database "{}" and/or user "{}" on {}:{}: {}'.format(
+                    obj.db,
+                    obj.user,
+                    obj.host,
+                    obj.port,
+                    output
+                )
+            )
 
     def validate(self, obj, ssh_target=None, verbose=False):
         command = obj.render_for_validate()
-        return obj.cluster.ssh_target.ssh_noninteractive(
+        success, output = obj.cluster.ssh_target.ssh_noninteractive(
             command,
             ssh_target=ssh_target,
             verbose=verbose
         )
+        if success:
+            return output
+        else:
+            raise obj.OperationFailed(
+                'Failed to validate user "{}" on {}:{}: {}'.format(
+                    obj.user,
+                    obj.host,
+                    obj.port,
+                    output
+                )
+            )
 
     def dump(self, obj, filename=None, ssh_target=None, verbose=False):
+        version = self.major_server_version(
+            obj,
+            verbose=verbose,
+            ssh_target=ssh_target
+        )
         if filename is None:
             filename = "{}.sql".format(obj.service.name)
             i = 1
             while os.path.exists(filename):
                 filename = "{}-{}.sql".format(obj.service.name, i)
                 i += 1
-        command = obj.render_for_dump()
+        command = obj.render_for_dump(version=version)
         tmp_fd, file_path = tempfile.mkstemp()
         with os.fdopen(tmp_fd, 'w') as fd:
             success, output = obj.cluster.ssh_target.ssh_noninteractive(
@@ -80,16 +137,72 @@ class MySQLDatabaseManager(Manager):
             if success:
                 fd.close()
                 os.rename(file_path, filename)
-                return success, output, filename
+                return output, filename
             else:
-                fd.seek(0)
-                errors = fd.read()
-                raise self.OperationFailed('Dump of MySQLDatabase("{}") failed:\n{}'.format(obj.pk, errors))
+                fd.close()
+                os.rename(file_path, filename + ".errors")
+                raise obj.OperationFailed('Failed to dump our MySQL db "{}" in {}:{}:  {}'.format(
+                    obj.db,
+                    obj.host,
+                    obj.port,
+                    output
+                ))
 
     def load(self, obj, filepath, ssh_target=None, verbose=False):
         success, output, filename = obj.cluster.push_file(filepath, ssh_target=ssh_target)
+        if not success:
+            raise obj.OperationFailed(
+                'Failed to upload {} to our cluster machine {} ({}): {}'.format(
+                    filepath,
+                    ssh_target.name,
+                    ssh_target.ip_address,
+                    output
+                )
+            )
         command = obj.render_for_load().format(filename=filename)
-        return obj.cluster.ssh_noninteractive(command, ssh_target=ssh_target, verbose=verbose)
+        success, output = obj.cluster.ssh_noninteractive(command, ssh_target=ssh_target, verbose=verbose)
+        if success:
+            return output
+        else:
+            raise obj.OperationFailed(
+                'Failed to load "{}" into  database "{}" on {}:{}: {}'.format(
+                    filepath,
+                    obj.db,
+                    obj.host,
+                    obj.port,
+                    output
+                )
+            )
+
+    def major_server_version(self, obj, ssh_target=None, verbose=False, user=None, password=None):
+        version = self.server_version(obj, ssh_target=ssh_target, verbose=verbose, user=user, password=password)
+        version = version.rsplit('.', 1)[0]
+        return version
+
+    def server_version(self, obj, ssh_target=None, verbose=False, user=None, password=None):
+        command = obj.render_for_server_version(user=user, password=password)
+        success, output = obj.cluster.ssh_noninteractive(command, ssh_target=ssh_target, verbose=verbose)
+        if success:
+            return output.split('\n')[3][2:-2].strip()
+        else:
+            raise obj.OperationFailed('Failed to get MySQL version of remote server {}:{}: {}'.format(
+                obj.host,
+                obj.port,
+                output
+            ))
+
+    def show_grants(self, obj, ssh_target=None, verbose=False):
+        command = obj.render_for_show_grants()
+        success, output = obj.cluster.ssh_noninteractive(command, ssh_target=ssh_target, verbose=verbose)
+        if success:
+            return output
+        else:
+            raise obj.OperationFailed('Failed to get grants for user "{}" on remote server {}:{}: {}'.format(
+                obj.user,
+                obj.host,
+                obj.port,
+                output
+            ))
 
 
 # ----------------------------------------
@@ -236,6 +349,9 @@ class MySQLDatabase(Model):
     def create(self, root_user, root_password, ssh_target=None, verbose=False):
         return self.objects.create(self, root_user, root_password, ssh_target=ssh_target, verbose=verbose)
 
+    def update(self, root_user, root_password, ssh_target=None, verbose=False):
+        return self.objects.update(self, root_user, root_password, ssh_target=ssh_target, verbose=verbose)
+
     def validate(self, ssh_target=None, verbose=False):
         return self.objects.validate(self, ssh_target=ssh_target, verbose=verbose)
 
@@ -245,40 +361,95 @@ class MySQLDatabase(Model):
     def load(self, filename, ssh_target=None, verbose=False):
         return self.objects.load(self, filename, ssh_target=ssh_target, verbose=verbose)
 
-    def render_for_create(self):
-        sql = "CREATE DATABASE {} CHARACTER SET {} COLLATE {};".format(self.db, self.character_set, self.collation)
-        sql += "grant all privileges on {}.* to '{}'@'%' identified with mysql_native_password by '{}';".format(
-            self.db,
-            self.user,
-            self.password
+    def server_version(self, ssh_target=None, verbose=False, user=None, password=None):
+        return self.objects.server_version(
+            self,
+            ssh_target=ssh_target,
+            verbose=verbose,
+            user=user,
+            password=password
         )
-        command = "/usr/bin/mysql --host={} --user={{root_user}} --password={{root_password}} --port={} --execute=\"{}\"".format(
-            self.host, self.port, sql
-        )
-        return command
 
-    def render_for_dump(self):
-        cmd = "/usr/bin/mysqldump --host={host} --user={user} --password={password} --port={port} --opt {db}"
-        cmd = cmd.format(
+    def show_grants(self, ssh_target=None, verbose=False):
+        return self.objects.show_grants(self, ssh_target=ssh_target, verbose=verbose)
+
+    def render_mysql_command(self, sql, user=None, password=None):
+        return '/usr/bin/mysql --host={host} --user={user} --password={password} --port={port} --execute="{sql}"'.format(  # noqa:E501
             host=self.host,
-            user=self.user,
-            password=self.password,
             port=self.port,
-            db=self.db
+            sql=sql,
+            user=user if user else self.user,
+            password=password if password else self.password
         )
+
+    def render_for_create(self, root_user, root_password, version=None):
+        if not version:
+            version = '5.6'
+        sql = "CREATE DATABASE {} CHARACTER SET {} COLLATE {};".format(self.db, self.character_set, self.collation)
+        if version == '5.6':
+            sql += "grant all privileges on {}.* to '{}'@'%' identified by '{}';".format(
+                self.db,
+                self.user,
+                self.password
+            )
+        else:
+            sql += "create user '{}'@'%' identified with mysql_native_password by '{}';".format(
+                self.user,
+                self.password
+            )
+            sql += "grant all privileges on {}.* to '{}'@'%';".format(self.db, self.user)
+        sql += "flush privileges;"
+        return self.render_mysql_command(sql, user=root_user, password=root_password)
+
+    def render_for_update(self, root_user, root_password, version=None):
+        if not version:
+            version = '5.6'
+        sql = "ALTER DATABASE {} CHARACTER SET = {};".format(self.db, self.character_set)
+        sql = "ALTER DATABASE {} COLLATE = {};".format(self.db, self.collation)
+        if version == '5.6':
+            sql += "set password for '{}'@'%' = PASSWORD('{}');".format(self.user, self.password)
+        else:
+            sql += "alter user '{}'@'%' identified with mysql_native_password by '{}';".format(self.user, self.password)
+        sql += "grant all privileges on {}.* to '{}'@'%';".format(self.db, self.user)
+        sql += "flush privileges;"
+        return self.render_mysql_command(sql, user=root_user, password=root_password)
+
+    def render_for_dump(self, version=None):
+        if not version:
+            version = '5.6'
+        if version == '5.6':
+            cmd = "/usr/bin/mysqldump --host={host} --user={user} --password={password} --port={port} --opt {db}".format(  # noqa:E501
+                host=self.host,
+                user=self.user,
+                password=self.password,
+                port=self.port,
+                db=self.db
+            )
+        else:
+            cmd = "/usr/bin/mysqldump --no-tablespaces --host={host} --user={user} --password={password} --port={port} --opt {db}".format(  # noqa:E501
+                host=self.host,
+                user=self.user,
+                password=self.password,
+                port=self.port,
+                db=self.db
+            )
         return cmd
 
     def render_for_load(self):
         cmd = "/usr/bin/mysql --host={} --user={} --password={} --port={} {} < {{filename}}; rm {{filename}}".format(
             self.host,
             self.user,
-            quote(self.password),
+            self.password,
             self.port,
             self.db
         )
         return cmd
 
     def render_for_validate(self):
-        cmd = "/usr/bin/mysql --host={} --user={} --password={} --port={} --execute='select version(), current_date;'"
-        cmd = cmd.format(self.host, self.user, quote(self.password), self.port)
-        return cmd
+        return self.render_mysql_command("select version(), current_date;")
+
+    def render_for_server_version(self, user=None, password=None):
+        return self.render_mysql_command("select version();", user=user, password=password)
+
+    def render_for_show_grants(self):
+        return self.render_mysql_command("show grants;")
