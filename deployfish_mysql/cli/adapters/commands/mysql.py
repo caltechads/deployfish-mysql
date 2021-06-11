@@ -61,7 +61,7 @@ IDENTIFIER is the name of the mysql connection in deployfish.yml.
         )(function)
         function = click.option(
             '--choose/--no-choose',
-            '-v',
+            '-c',
             default=False,
             help='Choose from all available ssh targets in our cluster, instead of having one chosen automatically.'
         )(function)
@@ -159,7 +159,7 @@ IDENTIFIER is the name of the mysql connection in deployfish.yml.
         )(function)
         function = click.option(
             '--choose/--no-choose',
-            '-v',
+            '-c',
             default=False,
             help='Choose from all available ssh targets in our cluster, instead of having one chosen automatically.'
         )(function)
@@ -240,7 +240,7 @@ IDENTIFIER is the name of the mysql connection in deployfish.yml.
         )(function)
         function = click.option(
             '--choose/--no-choose',
-            '-v',
+            '-c',
             default=False,
             help='Choose from all available ssh targets in our cluster, instead of having one chosen automatically.'
         )(function)
@@ -316,16 +316,14 @@ IDENTIFIER is the name of the mysql connection in deployfish.yml.
         )(function)
         function = click.option(
             '--choose/--no-choose',
-            '-v',
+            '-c',
             default=False,
             help='Choose from all available ssh targets in our cluster, instead of having one chosen automatically.'
         )(function)
         function = click.argument('identifier')(function)
         function = command_group.command(
             'dump',
-            short_help='Dump the contents of MySQL database to a local file.'.format(
-                object_name=cls.model.__name__
-            )
+            short_help='Dump the contents of MySQL database to a local file.'
         )(function)
         return function
 
@@ -389,7 +387,7 @@ IDENTIFIER is the name of the mysql connection in deployfish.yml.
         )(function)
         function = click.option(
             '--choose/--no-choose',
-            '-v',
+            '-c',
             default=False,
             help='Choose from all available ssh targets in our cluster, instead of having one chosen automatically.'
         )(function)
@@ -397,7 +395,7 @@ IDENTIFIER is the name of the mysql connection in deployfish.yml.
         function = click.argument('identifier')(function)
         function = command_group.command(
             'load',
-            short_help='Dump the contents of MySQL database to a local file.'
+            short_help='Load the contents of a local SQL file into an existing MySQL database.'
         )(function)
         return function
 
@@ -460,7 +458,7 @@ IDENTIFIER is the name of the mysql connection in deployfish.yml.
         )(function)
         function = click.option(
             '--choose/--no-choose',
-            '-v',
+            '-c',
             default=False,
             help='Choose from all available ssh targets in our cluster, instead of having one chosen automatically.'
         )(function)
@@ -522,7 +520,7 @@ IDENTIFIER is the name of the mysql connection in deployfish.yml.
         )(function)
         function = click.option(
             '--choose/--no-choose',
-            '-v',
+            '-c',
             default=False,
             help='Choose from all available ssh targets in our cluster, instead of having one chosen automatically.'
         )(function)
