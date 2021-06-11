@@ -3,6 +3,7 @@ import tempfile
 
 from deployfish.config import get_config
 from deployfish.core.models import Manager, Model, Secret, Service
+from deployfish.exceptions import ObjectReadOnly
 
 
 # ----------------------------------------
@@ -35,7 +36,7 @@ class MySQLDatabaseManager(Manager):
         return databases
 
     def delete(self, obj):
-        raise self.ReadOnly('SSH Tunnel objects are read only.')
+        raise ObjectReadOnly('SSH Tunnel objects are read only.')
 
     def save(self, obj, root_user, root_password, ssh_target=None, verbose=False):
         return self.create(obj, root_user, root_password, ssh_target=ssh_target, verbose=verbose)
@@ -141,7 +142,7 @@ class MySQLDatabaseManager(Manager):
             else:
                 fd.close()
                 os.rename(file_path, filename + ".errors")
-                raise obj.OperationFailed('Failed to dump our MySQL db "{}" in {}:{}:  {}'.format(
+                raise obj.OperationFailed('Failed to dump our MySQL db "{}" in {}:{}: {}'.format(
                     obj.db,
                     obj.host,
                     obj.port,
@@ -165,7 +166,7 @@ class MySQLDatabaseManager(Manager):
             return output
         else:
             raise obj.OperationFailed(
-                'Failed to load "{}" into  database "{}" on {}:{}: {}'.format(
+                'Failed to load "{}" into database "{}" on {}:{}: {}'.format(
                     filepath,
                     obj.db,
                     obj.host,
@@ -405,7 +406,7 @@ class MySQLDatabase(Model):
         if not version:
             version = '5.6'
         sql = "ALTER DATABASE {} CHARACTER SET = {};".format(self.db, self.character_set)
-        sql = "ALTER DATABASE {} COLLATE = {};".format(self.db, self.collation)
+        sql += "ALTER DATABASE {} COLLATE = {};".format(self.db, self.collation)
         if version == '5.6':
             sql += "set password for '{}'@'%' = PASSWORD('{}');".format(self.user, self.password)
         else:

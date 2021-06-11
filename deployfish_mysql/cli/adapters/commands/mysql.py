@@ -2,7 +2,7 @@ import click
 
 from deployfish.cli.adapters.utils import handle_model_exceptions, print_render_exception
 from deployfish.config import get_config
-from deployfish.exceptions import RenderException, ConfigProcessingFailed
+from deployfish.exceptions import ConfigProcessingFailed
 
 
 class ClickCreateDatabaseCommandMixin(object):
@@ -13,7 +13,7 @@ class ClickCreateDatabaseCommandMixin(object):
         Build a fully specified click command for creating databases and users in MySQL servers, and add it
         to the command group `command_group`.  Return the properly wrapped function object.
 
-        :param command_group function: the click command group function to use to register our click command
+        :param command_group: the click command group function to use to register our click command
 
         :rtype: function
         """
@@ -84,17 +84,17 @@ IDENTIFIER is the name of the mysql connection in deployfish.yml.
         else:
             target = None
         output = obj.create(root_user, root_password, ssh_target=target, verbose=verbose)
-        lines = []
-        lines.append(click.style(
-            'Created database "{}" in mysql server {}:{}.'.format(obj.db, obj.host, obj.port),
-            fg='green'
-        ))
-        lines.append(click.style(
-            'Created user "{}" in mysql server {}:{} and granted it all privileges on database "{}".'.format(
-                obj.user, obj.host, obj.port, obj.db
-            ),
-            fg='green'
-        ))
+        lines = [
+            click.style(
+                'Created database "{}" in mysql server {}:{}.'.format(obj.db, obj.host, obj.port),
+                fg='green'
+            ), click.style(
+                'Created user "{}" in mysql server {}:{} and granted it all privileges on database "{}".'.format(
+                    obj.user, obj.host, obj.port, obj.db
+                ),
+                fg='green'
+            )
+        ]
         if output:
             lines.append(click.style('\nMySQL output:\n', fg='yellow'))
             lines.append(output)
@@ -182,17 +182,17 @@ IDENTIFIER is the name of the mysql connection in deployfish.yml.
         else:
             target = None
         output = obj.update(root_user, root_password, ssh_target=target, verbose=verbose)
-        lines = []
-        lines.append(click.style(
-            'Updated database "{}" in mysql server {}:{}.'.format(obj.db, obj.host, obj.port),
-            fg='green'
-        ))
-        lines.append(click.style(
-            'Updated user "{}" in mysql server {}:{} and granted it all privileges on database "{}".'.format(
-                obj.user, obj.host, obj.port, obj.db
-            ),
-            fg='green'
-        ))
+        lines = [
+            click.style(
+                'Updated database "{}" in mysql server {}:{}.'.format(obj.db, obj.host, obj.port),
+                fg='green'
+            ), click.style(
+                'Updated user "{}" in mysql server {}:{} and granted it all privileges on database "{}".'.format(
+                    obj.user, obj.host, obj.port, obj.db
+                ),
+                fg='green'
+            )
+        ]
         if output:
             lines.append(click.style('\nMySQL output:\n', fg='yellow'))
             lines.append(output)
@@ -207,7 +207,7 @@ class ClickValidateDatabaseUserCommandMixin(object):
         Build a fully specified click command for validating database users in MySQL servers, and add it
         to the command group `command_group`.  Return the properly wrapped function object.
 
-        :param command_group function: the click command group function to use to register our click command
+        :param command_group: the click command group function to use to register our click command
 
         :rtype: function
         """
@@ -259,13 +259,14 @@ IDENTIFIER is the name of the mysql connection in deployfish.yml.
         else:
             target = None
         obj.validate(ssh_target=target, verbose=verbose)
-        lines = []
-        lines.append(click.style(
-            'MySQL user "{}" in mysql server {}:{} exists and has the password we expect.'.format(
-                obj.user, obj.host, obj.port
-            ),
-            fg='green'
-        ))
+        lines = [
+            click.style(
+                'MySQL user "{}" in mysql server {}:{} exists and has the password we expect.'.format(
+                    obj.user, obj.host, obj.port
+                ),
+                fg='green'
+            )
+        ]
         return '\n'.join(lines)
 
 
@@ -277,7 +278,7 @@ class ClickDumpDatabaseCommandMixin(object):
         Build a fully specified click command for dumping databases from MySQL servers, and add it
         to the command group `command_group`.  Return the properly wrapped function object.
 
-        :param command_group function: the click command group function to use to register our click command
+        :param command_group: the click command group function to use to register our click command
 
         :rtype: function
         """
@@ -335,13 +336,14 @@ IDENTIFIER is the name of the mysql connection in deployfish.yml.
         else:
             target = None
         output, output_filename = obj.dump(filename=filename, ssh_target=target, verbose=verbose)
-        lines = []
-        lines.append(click.style(
-            'Dumped database "{}" in mysql server {}:{} to "{}".'.format(
-                obj.db, obj.host, obj.port, output_filename
-            ),
-            fg='green'
-        ))
+        lines = [
+            click.style(
+                'Dumped database "{}" in mysql server {}:{} to "{}".'.format(
+                    obj.db, obj.host, obj.port, output_filename
+                ),
+                fg='green'
+            )
+        ]
         return '\n'.join(lines)
 
 
@@ -353,7 +355,7 @@ class ClickLoadSQLCommandMixin(object):
         Build a fully specified click command for loading local SQL files into a MySQL database, and add it
         to the command group `command_group`.  Return the properly wrapped function object.
 
-        :param command_group function: the click command group function to use to register our click command
+        :param command_group: the click command group function to use to register our click command
 
         :rtype: function
         """
@@ -429,7 +431,7 @@ class ClickShowGrantsCommandMixin(object):
         Build a fully specified click command for showing the MySQL grants for our user in the remote server, and add it
         to the command group `command_group`.  Return the properly wrapped function object.
 
-        :param command_group function: the click command group function to use to register our click command
+        :param command_group: the click command group function to use to register our click command
 
         :rtype: function
         """
@@ -491,7 +493,7 @@ class ClickServerVersionCommandMixin(object):
         Build a fully specified click command for printing the MySQL version of the server, and add it
         to the command group `command_group`.  Return the properly wrapped function object.
 
-        :param command_group function: the click command group function to use to register our click command
+        :param command_group: the click command group function to use to register our click command
 
         :rtype: function
         """
