@@ -406,14 +406,18 @@ IDENTIFIER is the name of the mysql connection in deployfish.yml.
             target = self.get_target(obj.cluster)
         else:
             target = obj.cluster.ssh_target
-        obj.load(filename, ssh_target=target, verbose=verbose)
-        lines = []
-        lines.append(click.style(
-            'Loaded file "{}" into database "{}" on  mysql server {}:{}'.format(
-                filename, obj.db, obj.host, obj.port
-            ),
-            fg='green'
-        ))
+        output = obj.load(filename, ssh_target=target, verbose=verbose)
+        lines = [
+            click.style(
+                'Loaded file "{}" into database "{}" on mysql server {}:{}'.format(
+                    filename, obj.db, obj.host, obj.port
+                ),
+                fg='green'
+            )
+        ]
+        if output.strip():
+            # This is here just case `mysql` returns 0 but also prints something. Should probably never trigger.
+            lines.append(click.style('Output from `mysql` command:\n{}'.format(output), fg='red'))
         return '\n'.join(lines)
 
 

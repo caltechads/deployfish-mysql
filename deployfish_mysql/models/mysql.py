@@ -436,7 +436,7 @@ class MySQLDatabase(Model):
         return cmd
 
     def render_for_load(self):
-        cmd = "/usr/bin/mysql --host={} --user={} --password={} --port={} {} < {{filename}}; rm {{filename}}".format(
+        cmd = "/usr/bin/mysql --host={} --user={} --password={} --port={} {} < {{filename}} && rm {{filename}}".format(
             self.host,
             self.user,
             self.password,

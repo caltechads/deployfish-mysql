@@ -113,6 +113,7 @@ config.codekit3
 sql/docker/mysql-data
 .vscode
 *.code-workspace
+.idea
 
 # Vim
 *.sw*
