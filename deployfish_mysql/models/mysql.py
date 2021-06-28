@@ -375,7 +375,7 @@ class MySQLDatabase(Model):
         return self.objects.show_grants(self, ssh_target=ssh_target, verbose=verbose)
 
     def render_mysql_command(self, sql, user=None, password=None):
-        return '/usr/bin/mysql --host={host} --user={user} --password={password} --port={port} --execute="{sql}"'.format(  # noqa:E501
+        return '/usr/bin/mysql --host={host} --user={user} --password=\'{password}\' --port={port} --execute="{sql}"'.format(  # noqa:E501
             host=self.host,
             port=self.port,
             sql=sql,
@@ -419,7 +419,7 @@ class MySQLDatabase(Model):
         if not version:
             version = '5.6'
         if version == '5.6':
-            cmd = "/usr/bin/mysqldump --host={host} --user={user} --password={password} --port={port} --opt {db}".format(  # noqa:E501
+            cmd = "/usr/bin/mysqldump --host={host} --user={user} --password='{password}' --port={port} --opt {db}".format(  # noqa:E501
                 host=self.host,
                 user=self.user,
                 password=self.password,
@@ -427,7 +427,7 @@ class MySQLDatabase(Model):
                 db=self.db
             )
         else:
-            cmd = "/usr/bin/mysqldump --no-tablespaces --host={host} --user={user} --password={password} --port={port} --opt {db}".format(  # noqa:E501
+            cmd = "/usr/bin/mysqldump --no-tablespaces --host={host} --user={user} --password='{password}' --port={port} --opt {db}".format(  # noqa:E501
                 host=self.host,
                 user=self.user,
                 password=self.password,
@@ -437,7 +437,7 @@ class MySQLDatabase(Model):
         return cmd
 
     def render_for_load(self):
-        cmd = "/usr/bin/mysql --host={} --user={} --password={} --port={} {} < {{filename}} && rm {{filename}}".format(
+        cmd = "/usr/bin/mysql --host={} --user={} --password='{}' --port={} {} < {{filename}} && rm {{filename}}".format(
             self.host,
             self.user,
             self.password,
