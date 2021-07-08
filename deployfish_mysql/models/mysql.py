@@ -115,18 +115,13 @@ class MySQLDatabaseManager(Manager):
             )
 
     def dump(self, obj, filename=None, ssh_target=None, verbose=False):
-        version = self.major_server_version(
-            obj,
-            verbose=verbose,
-            ssh_target=ssh_target
-        )
         if filename is None:
             filename = "{}.sql".format(obj.service.name)
             i = 1
             while os.path.exists(filename):
                 filename = "{}-{}.sql".format(obj.service.name, i)
                 i += 1
-        command = obj.render_for_dump(version=version)
+        command = obj.render_for_dump()
         tmp_fd, file_path = tempfile.mkstemp()
         with os.fdopen(tmp_fd, 'w') as fd:
             success, output = obj.cluster.ssh_target.ssh_noninteractive(
@@ -415,25 +410,14 @@ class MySQLDatabase(Model):
         sql += "flush privileges;"
         return self.render_mysql_command(sql, user=root_user, password=root_password)
 
-    def render_for_dump(self, version=None):
-        if not version:
-            version = '5.6'
-        if version == '5.6':
-            cmd = "/usr/bin/mysqldump --host={host} --user={user} --password='{password}' --port={port} --opt {db}".format(  # noqa:E501
-                host=self.host,
-                user=self.user,
-                password=self.password,
-                port=self.port,
-                db=self.db
-            )
-        else:
-            cmd = "/usr/bin/mysqldump --no-tablespaces --host={host} --user={user} --password='{password}' --port={port} --opt {db}".format(  # noqa:E501
-                host=self.host,
-                user=self.user,
-                password=self.password,
-                port=self.port,
-                db=self.db
-            )
+    def render_for_dump(self):
+        cmd = "/usr/bin/mysqldump --no-tablespaces --host={host} --user={user} --password='{password}' --port={port} --opt {db}".format(  # noqa:E501
+            host=self.host,
+            user=self.user,
+            password=self.password,
+            port=self.port,
+            db=self.db
+        )
         return cmd
 
     def render_for_load(self):
