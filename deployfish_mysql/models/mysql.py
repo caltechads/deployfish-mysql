@@ -380,7 +380,7 @@ class MySQLDatabase(Model):
 
     def render_for_create(self, root_user, root_password, version=None):
         if not version:
-            version = '5.6'
+            version = '8.0'
         sql = "CREATE DATABASE {} CHARACTER SET {} COLLATE {};".format(self.db, self.character_set, self.collation)
         if version == '5.6':
             sql += "grant all privileges on {}.* to '{}'@'%' identified by '{}';".format(
