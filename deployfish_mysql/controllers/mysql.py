@@ -245,7 +245,6 @@ Validate that a user in a remote MySQL server exists and has the password we exp
                     'help': 'Write the SQL dump to this file.',
                     'default': False,
                     'dest': 'filename',
-                    'action': 'store_true'
                 }
             ),
             (
