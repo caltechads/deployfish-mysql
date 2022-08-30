@@ -13,7 +13,6 @@ setup(
     keywords=['aws', 'ecs', 'docker', 'devops', 'mysql'],
     classifiers=[
         "Programming Language :: Python :: 3",
-        "Framework :: Deployfish",
     ],
     packages=find_packages(),
     include_package_data=True,
