@@ -12,16 +12,17 @@ setup(
     url="https://github.com/caltechads/deployfish-mysql",
     keywords=['aws', 'ecs', 'docker', 'devops', 'mysql'],
     classifiers=[
-        "Programming Language :: Python :: 2.7",
-        "Programming Language :: Python :: 3"
+        "Programming Language :: Python :: 3",
+        "Framework :: Deployfish",
     ],
     packages=find_packages(),
     include_package_data=True,
     install_requires=[
+        "cement >= 3.0",
         "click >= 7.0",
-        "deployfish >= 1.2.0"
+        "deployfish > 1.7.4"
     ],
     entry_points={
-        'deployfish.command.plugins': ['mysql = deployfish_mysql.cli.main']
+        'deployfish.plugins': ['mysql = deployfish_mysql']
     },
 )
