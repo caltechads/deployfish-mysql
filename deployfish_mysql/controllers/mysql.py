@@ -371,7 +371,7 @@ Show the GRANTs for our user in the remote MySQL server.
         loader = self.loader(self)
         obj = loader.get_object_from_deployfish(self.app.pargs.pk)
         target = get_ssh_target(self.app, obj.cluster, choose=self.app.pargs.choose)
-        output = obj.load(ssh_target=target, verbose=self.app.pargs.verbose)
+        output = obj.show_grants(ssh_target=target, verbose=self.app.pargs.verbose)
         self.app.print(output)
 
     @ex(
