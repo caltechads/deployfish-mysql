@@ -32,12 +32,6 @@ class MysqlController(ReadOnlyCrudBase):
         'Password': 'password',
     }
 
-    def _post_argument_parsing(self):
-        # We do the following just to load the Config, which we need to work with MySQLDatabase
-        # objects
-        self.app.deployfish_config  # pylint:disable=pointless-statement
-        return super()._post_argument_parsing()
-
     @ex(
         help="Create a MySQL database and user for a Service.",
         arguments=[
