@@ -238,7 +238,7 @@ Validate that a user in a remote MySQL server exists and has the password we exp
                 {
                     'help': 'Write the SQL dump to this file.',
                     'default': None,
-                    'dest': 'filename',
+                    'dest': 'dumpfile',
                 }
             ),
             (
@@ -272,7 +272,7 @@ use "{service-name}-1.sql", and if that exists "{service-name}-2.sql" and so on.
         obj = loader.get_object_from_deployfish(self.app.pargs.pk)
         target = get_ssh_target(self.app, obj.cluster, choose=self.app.pargs.choose)
         _, output_filename = obj.dump(
-            filename=self.app.pargs.filename,
+            dumpfile=self.app.pargs.dumpfile,
             ssh_target=target,
             verbose=self.app.pargs.verbose
         )
