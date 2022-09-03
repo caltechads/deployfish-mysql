@@ -272,7 +272,7 @@ use "{service-name}-1.sql", and if that exists "{service-name}-2.sql" and so on.
         obj = loader.get_object_from_deployfish(self.app.pargs.pk)
         target = get_ssh_target(self.app, obj.cluster, choose=self.app.pargs.choose)
         _, output_filename = obj.dump(
-            dumpfile=self.app.pargs.dumpfile,
+            filename=self.app.pargs.dumpfile,
             ssh_target=target,
             verbose=self.app.pargs.verbose
         )
