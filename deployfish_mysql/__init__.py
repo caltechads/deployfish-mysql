@@ -5,7 +5,7 @@ from cement import App
 import deployfish_mysql.adapters  # noqa:F401
 from .controllers.mysql import MysqlController
 
-__version__ = "1.2.6"
+__version__ = "1.2.7"
 
 
 def add_template_dir(app: App):
