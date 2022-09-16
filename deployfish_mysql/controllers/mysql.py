@@ -21,6 +21,12 @@ class MysqlController(ReadOnlyCrudBase):
 
     model: Type[Model] = MySQLDatabase
 
+    help_overrides: Dict[str, str] = {
+        'info': 'Show details about an MySQL database connection',
+        'exists': 'Show whether a MySQL database connection exists in deployfish.yml',
+        'list': 'List available MySQL database connections from deployfish.yml',
+    }
+
     info_template: str = 'detail--mysqldatabase.jinja2'
 
     list_ordering: str = 'Name'
@@ -33,7 +39,7 @@ class MysqlController(ReadOnlyCrudBase):
     }
 
     @ex(
-        help="Create a MySQL database and user for a Service.",
+        help="Create a MySQL database and user in the remote MySQL server.",
         arguments=[
             (['pk'], {'help': 'the name of the MySQL connection in deployfish.yml'}),
             (
@@ -72,7 +78,7 @@ class MysqlController(ReadOnlyCrudBase):
             ),
         ],
         description="""
-Create a database and user in a remote MySQL server for a Service.
+Create a database and user in a remote MySQL server.
 """
     )
     @handle_model_exceptions
@@ -109,7 +115,7 @@ Create a database and user in a remote MySQL server for a Service.
         self.app.print('\n'.join(lines))
 
     @ex(
-        help="Update a MySQL database and user for a Service.",
+        help="Update a MySQL database and user for in the remote MySQL server.",
         arguments=[
             (['pk'], {'help': 'the name of the MySQL connection in deployfish.yml'}),
             (
@@ -148,9 +154,9 @@ Create a database and user in a remote MySQL server for a Service.
             ),
         ],
         description="""
-Update an existing database and user in a remote MySQL server for a Service.  This allows you
-to change the database character set and collation, update the user's password and update the
-GRANTs for the user.
+Update an existing database and user in a remote MySQL server.  This allows you
+to change the database character set and collation, update the user's password
+and update the GRANTs for the user.
 """
     )
     @handle_model_exceptions
@@ -187,7 +193,7 @@ GRANTs for the user.
         self.app.print('\n'.join(lines))
 
     @ex(
-        help="Validate that a MySQL user for a Service exists and has the password we expect.",
+        help="Validate that a MySQL database and user exists in the remote MySQL server and has the password we expect.",
         arguments=[
             (['pk'], {'help': 'the name of the MySQL connection in deployfish.yml'}),
             (
@@ -210,7 +216,8 @@ GRANTs for the user.
             ),
         ],
         description="""
-Validate that a user in a remote MySQL server exists and has the password we expect.
+Validate that a database and user in a remote MySQL server exists in the remote
+MySQL server and has the password we expect.
 """
     )
     @handle_model_exceptions
@@ -311,7 +318,7 @@ use "{service-name}-1.sql", and if that exists "{service-name}-2.sql" and so on.
             ),
         ],
         description="""
-Load the contents of a local SQL file into an existing MySQL database.
+Load the contents of a local SQL file into an existing MySQL database in the remote MySQL server.
 """
     )
     @handle_model_exceptions
@@ -369,7 +376,7 @@ Show the GRANTs for our user in the remote MySQL server.
         self.app.print(output)
 
     @ex(
-        help="Show the the MySQL Version for the remote MySQL server.",
+        help="Show the the MySQL version for the remote MySQL server.",
         arguments=[
             (['pk'], {'help': 'the name of the MySQL connection in deployfish.yml'}),
             (
@@ -392,7 +399,7 @@ Show the GRANTs for our user in the remote MySQL server.
             ),
         ],
         description="""
-Print the version of the remote MySQL server.
+Print the MySQL version of the remote MySQL server.
 """
     )
     @handle_model_exceptions
