@@ -297,7 +297,7 @@ use "{service-name}-1.sql", and if that exists "{service-name}-2.sql" and so on.
         help="Load the contents of a local SQL file into an existing MySQL database.",
         arguments=[
             (['pk'], {'help': 'the name of the MySQL connection in deployfish.yml'}),
-            (['filename'], {'help': 'the filename of the SQL file to load'}),
+            (['sqlfile'], {'help': 'the filename of the SQL file to load'}),
             (
                 ['-c', '--choose'],
                 {
@@ -326,11 +326,11 @@ Load the contents of a local SQL file into an existing MySQL database in the rem
         loader = self.loader(self)
         obj = loader.get_object_from_deployfish(self.app.pargs.pk)
         target = get_ssh_target(self.app, obj.cluster, choose=self.app.pargs.choose)
-        output = obj.load(self.app.pargs.filename, ssh_target=target, verbose=self.app.pargs.verbose)
+        output = obj.load(self.app.pargs.sqlfile, ssh_target=target, verbose=self.app.pargs.verbose)
         lines = [
             click.style(
                 'Loaded file "{}" into database "{}" on mysql server {}:{}'.format(
-                    self.app.pargs.filename, obj.db, obj.host, obj.port
+                    self.app.pargs.sqlfile, obj.db, obj.host, obj.port
                 ),
                 fg='green'
             )
