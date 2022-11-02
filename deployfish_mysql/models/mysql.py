@@ -365,11 +365,13 @@ class MySQLDatabase(Model):
 
     @property
     def ssh_target(self) -> Optional[Instance]:
-        return self.service.ssh_target
+        if self.service.task_definition.is_fargate():
+            return self.service.ssh_target
+        return self.cluster.ssh_target
 
     @property
     def ssh_targets(self) -> Sequence[Instance]:
-        return self.service.ssh_targets
+        return self.service.cluster.ssh_targets
 
     @property
     def service(self) -> Service:
