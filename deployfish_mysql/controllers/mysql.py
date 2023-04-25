@@ -325,13 +325,8 @@ Load the contents of a local SQL file into an existing MySQL database in the rem
     def load(self):
         loader = self.loader(self)
         obj = loader.get_object_from_deployfish(self.app.pargs.pk)
-<<<<<<< HEAD
-        target = get_ssh_target(self.app, obj.cluster, choose=self.app.pargs.choose)
-        output = obj.load(self.app.pargs.sqlfile, ssh_target=target, verbose=self.app.pargs.verbose)
-=======
         target = get_ssh_target(self.app, obj, choose=self.app.pargs.choose)
         output = obj.load(self.app.pargs.filename, ssh_target=target, verbose=self.app.pargs.verbose)
->>>>>>> 76f5c50389aeec95c039dd251d05eb1d5c305c06
         lines = [
             click.style(
                 'Loaded file "{}" into database "{}" on mysql server {}:{}'.format(
