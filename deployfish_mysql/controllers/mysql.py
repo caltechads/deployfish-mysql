@@ -91,7 +91,7 @@ Create a database and user in a remote MySQL server.
         if not self.app.pargs.root_password:
             p = shell.Prompt('DB root password')
             self.app.pargs.root_password = p.prompt()
-        target = get_ssh_target(self.app, obj.cluster, choose=self.app.pargs.choose)
+        target = get_ssh_target(self.app, obj, choose=self.app.pargs.choose)
         output = obj.create(
             self.app.pargs.root_user,
             self.app.pargs.root_password,
@@ -169,7 +169,7 @@ and update the GRANTs for the user.
         if not self.app.pargs.root_password:
             p = shell.Prompt('DB root password')
             self.app.pargs.root_password = p.prompt()
-        target = get_ssh_target(self.app, obj.cluster, choose=self.app.pargs.choose)
+        target = get_ssh_target(self.app, obj, choose=self.app.pargs.choose)
         output = obj.update(
             self.app.pargs.root_user,
             self.app.pargs.root_password,
@@ -224,7 +224,7 @@ MySQL server and has the password we expect.
     def validate(self):
         loader = self.loader(self)
         obj = loader.get_object_from_deployfish(self.app.pargs.pk)
-        target = get_ssh_target(self.app, obj.cluster, choose=self.app.pargs.choose)
+        target = get_ssh_target(self.app, obj, choose=self.app.pargs.choose)
         obj.validate(ssh_target=target, verbose=self.app.pargs.verbose)
         lines = [
             click.style(
@@ -277,7 +277,7 @@ use "{service-name}-1.sql", and if that exists "{service-name}-2.sql" and so on.
     def dump(self):
         loader = self.loader(self)
         obj = loader.get_object_from_deployfish(self.app.pargs.pk)
-        target = get_ssh_target(self.app, obj.cluster, choose=self.app.pargs.choose)
+        target = get_ssh_target(self.app, obj, choose=self.app.pargs.choose)
         _, output_filename = obj.dump(
             filename=self.app.pargs.dumpfile,
             ssh_target=target,
@@ -325,8 +325,13 @@ Load the contents of a local SQL file into an existing MySQL database in the rem
     def load(self):
         loader = self.loader(self)
         obj = loader.get_object_from_deployfish(self.app.pargs.pk)
+<<<<<<< HEAD
         target = get_ssh_target(self.app, obj.cluster, choose=self.app.pargs.choose)
         output = obj.load(self.app.pargs.sqlfile, ssh_target=target, verbose=self.app.pargs.verbose)
+=======
+        target = get_ssh_target(self.app, obj, choose=self.app.pargs.choose)
+        output = obj.load(self.app.pargs.filename, ssh_target=target, verbose=self.app.pargs.verbose)
+>>>>>>> 76f5c50389aeec95c039dd251d05eb1d5c305c06
         lines = [
             click.style(
                 'Loaded file "{}" into database "{}" on mysql server {}:{}'.format(
@@ -371,7 +376,7 @@ Show the GRANTs for our user in the remote MySQL server.
     def show_grants(self):
         loader = self.loader(self)
         obj = loader.get_object_from_deployfish(self.app.pargs.pk)
-        target = get_ssh_target(self.app, obj.cluster, choose=self.app.pargs.choose)
+        target = get_ssh_target(self.app, obj, choose=self.app.pargs.choose)
         output = obj.show_grants(ssh_target=target, verbose=self.app.pargs.verbose)
         self.app.print(output)
 
@@ -406,5 +411,5 @@ Print the MySQL version of the remote MySQL server.
     def server_version(self):
         loader = self.loader(self)
         obj = loader.get_object_from_deployfish(self.app.pargs.pk)
-        target = get_ssh_target(self.app, obj.cluster, choose=self.app.pargs.choose)
+        target = get_ssh_target(self.app, obj, choose=self.app.pargs.choose)
         self.app.print(obj.server_version(ssh_target=target, verbose=self.app.pargs.verbose))
