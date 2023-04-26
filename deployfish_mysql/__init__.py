@@ -8,7 +8,7 @@ from .controllers.mysql import MysqlController
 from .hooks import pre_config_interpolate_add_mysql_section
 
 
-__version__ = "1.2.12"
+__version__ = "1.2.13"
 
 
 def add_template_dir(app: App):
