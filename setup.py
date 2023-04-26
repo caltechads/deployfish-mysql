@@ -24,7 +24,7 @@ setup(
     install_requires=[
         "cement >= 3.0",
         "click >= 7.0",
-        "deployfish > 1.7.4"
+        "deployfish > 1.11.1"
     ],
     entry_points={
         'deployfish.plugins': ['mysql = deployfish_mysql']

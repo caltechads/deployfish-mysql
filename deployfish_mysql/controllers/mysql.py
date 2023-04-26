@@ -6,7 +6,7 @@ import click
 from deployfish.controllers.crud import ReadOnlyCrudBase
 from deployfish.controllers.network import get_ssh_target
 from deployfish.controllers.utils import handle_model_exceptions
-from deployfish.core.models import Model
+from deployfish.core.models import Model, RDSInstance
 
 from deployfish_mysql.models.mysql import MySQLDatabase
 
@@ -43,14 +43,6 @@ class MysqlController(ReadOnlyCrudBase):
         arguments=[
             (['pk'], {'help': 'the name of the MySQL connection in deployfish.yml'}),
             (
-                ['--root-user'],
-                {
-                    'help': 'the username of the root user for the MySQL server',
-                    'default': None,
-                    'dest': 'root_user'
-                }
-            ),
-            (
                 ['--root-password'],
                 {
                     'help': 'the password of the root user for the MySQL server',
@@ -85,15 +77,18 @@ Create a database and user in a remote MySQL server.
     def create(self):
         loader = self.loader(self)
         obj = loader.get_object_from_deployfish(self.app.pargs.pk)
-        if not self.app.pargs.root_user:
-            p = shell.Prompt('DB root user')
-            self.app.pargs.root_user = p.prompt()
+        # The DbInstanceIdentifier should be the short hostname from the host key
+        db_instance_name = obj.host.split('.')[0]
+        rds_instance = RDSInstance.objects.get(db_instance_name)
         if not self.app.pargs.root_password:
-            p = shell.Prompt('DB root password')
-            self.app.pargs.root_password = p.prompt()
+            if rds_instance.secret_enabled:
+                self.app.pargs.root_password = rds_instance.root_password
+            else:
+                p = shell.Prompt('DB root password')
+                self.app.pargs.root_password = p.prompt()
         target = get_ssh_target(self.app, obj, choose=self.app.pargs.choose)
         output = obj.create(
-            self.app.pargs.root_user,
+            rds_instance.root_user,
             self.app.pargs.root_password,
             ssh_target=target,
             verbose=self.app.pargs.verbose
@@ -118,14 +113,6 @@ Create a database and user in a remote MySQL server.
         help="Update a MySQL database and user for in the remote MySQL server.",
         arguments=[
             (['pk'], {'help': 'the name of the MySQL connection in deployfish.yml'}),
-            (
-                ['--root-user'],
-                {
-                    'help': 'the username of the root user for the MySQL server',
-                    'default': None,
-                    'dest': 'root_user'
-                }
-            ),
             (
                 ['--root-password'],
                 {
@@ -163,15 +150,18 @@ and update the GRANTs for the user.
     def update(self):
         loader = self.loader(self)
         obj = loader.get_object_from_deployfish(self.app.pargs.pk)
-        if not self.app.pargs.root_user:
-            p = shell.Prompt('DB root user')
-            self.app.pargs.root_user = p.prompt()
+        db_instance_name = obj.host.split('.')[0]
+        rds_instance = RDSInstance.objects.get(db_instance_name)
         if not self.app.pargs.root_password:
-            p = shell.Prompt('DB root password')
+            if rds_instance.secret_enabled:
+                self.app.pargs.root_password = rds_instance.root_password
+            else:
+                p = shell.Prompt('DB root password')
+                self.app.pargs.root_password = p.prompt()
             self.app.pargs.root_password = p.prompt()
         target = get_ssh_target(self.app, obj, choose=self.app.pargs.choose)
         output = obj.update(
-            self.app.pargs.root_user,
+            rds_instance.root_user,
             self.app.pargs.root_password,
             ssh_target=target,
             verbose=self.app.pargs.verbose
@@ -193,7 +183,8 @@ and update the GRANTs for the user.
         self.app.print('\n'.join(lines))
 
     @ex(
-        help="Validate that a MySQL database and user exists in the remote MySQL server and has the password we expect.",
+        help="Validate that a MySQL database and user exists in the remote MySQL "
+             "server and has the password we expect.",
         arguments=[
             (['pk'], {'help': 'the name of the MySQL connection in deployfish.yml'}),
             (
