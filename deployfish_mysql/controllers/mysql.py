@@ -259,7 +259,7 @@ MySQL server and has the password we expect.
             ),
         ],
         description="""
-Dump the contents of a MySQL database to a local file.  If "--filename" is not supplied,
+Dump the contents of a MySQL database to a local file.  If "--dumpfile" is not supplied,
 the filename of the output file will be "{service-name}.sql". If that exists, then we will
 use "{service-name}-1.sql", and if that exists "{service-name}-2.sql" and so on.
 """
@@ -317,7 +317,7 @@ Load the contents of a local SQL file into an existing MySQL database in the rem
         loader = self.loader(self)
         obj = loader.get_object_from_deployfish(self.app.pargs.pk)
         target = get_ssh_target(self.app, obj, choose=self.app.pargs.choose)
-        output = obj.load(self.app.pargs.filename, ssh_target=target, verbose=self.app.pargs.verbose)
+        output = obj.load(self.app.pargs.sqlfile, ssh_target=target, verbose=self.app.pargs.verbose)
         lines = [
             click.style(
                 'Loaded file "{}" into database "{}" on mysql server {}:{}'.format(
